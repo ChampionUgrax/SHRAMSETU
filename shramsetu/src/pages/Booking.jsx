@@ -392,15 +392,38 @@ export default function Booking() {
             )}
 
             {step === 2 && (
-              <div>
-                <p className="font-semibold text-navy-700 mb-4 flex items-center gap-2"><MapPin size={16} /> Enter your address</p>
-                <textarea
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  placeholder="House no, street, area, city, PIN code"
-                  rows={4}
-                  className="input-field resize-none"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <p className="font-semibold text-navy-700 mb-4 flex items-center gap-2">
+                    <MapPin size={16} /> Enter your address
+                  </p>
+                  <textarea
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="House no, street, area, city, PIN code"
+                    rows={4}
+                    className="input-field resize-none"
+                  />
+                </div>
+
+                {/* Map Container */}
+                <div className="relative w-full h-64 md:h-auto min-h-[220px] rounded-2xl overflow-hidden border border-navy-100 bg-gradient-to-br from-navy-50 to-coop-50 flex items-center justify-center">
+                  <div 
+                    className="absolute inset-0 opacity-40" 
+                    style={{ 
+                      backgroundImage: 'linear-gradient(#c9d3e6 1px, transparent 1px), linear-gradient(90deg, #c9d3e6 1px, transparent 1px)', 
+                      backgroundSize: '32px 32px' 
+                    }} 
+                  />
+                  <div className="relative z-10 flex flex-col items-center">
+                    <div className="w-8 h-8 rounded-full bg-navy-600 border-4 border-white shadow-lg flex items-center justify-center text-white">
+                      <MapPin size={16} />
+                    </div>
+                    <span className="text-xs font-bold text-navy-700 bg-white px-2 py-0.5 rounded mt-2 shadow">
+                      Service Location
+                    </span>
+                  </div>
+                </div>
               </div>
             )}
 

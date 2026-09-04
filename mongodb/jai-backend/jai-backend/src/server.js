@@ -13,7 +13,7 @@ import paymentRoutes from './routes/paymentRoutes.js';
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Security & Parsing Middleware (Allowing Render Frontend)
+// Security & Parsing Middleware
 app.use(cors({
   origin: '*',
   credentials: true
@@ -30,14 +30,13 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Map Location Endpoint for Frontend Map Component
+// Map Location Endpoint (Added here directly)
 app.get('/api/location', (req, res) => {
   res.status(200).json({
     success: true,
     data: [
       { id: 1, name: "Ramesh Kumar", skill: "Electrician", lat: 26.9124, lng: 75.7873 },
-      { id: 2, name: "Suresh Sharma", skill: "Plumber", lat: 26.8910, lng: 75.8010 },
-      { id: 3, name: "Anita Devi", skill: "Caregiving", lat: 26.9200, lng: 75.7700 }
+      { id: 2, name: "Suresh Sharma", skill: "Plumber", lat: 26.8910, lng: 75.8010 }
     ]
   });
 });

@@ -1,24 +1,29 @@
 const express = require('express');
 const cors = require('cors');
+const Razorpay = require('razorpay');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Security & Parsing Middleware
+// Initialize Razorpay SDK
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_placeholder',
+  key_secret: process.env.RAZORPAY_KEY_SECRET || 'secret_placeholder'
+});
+
+// Security & Parsing Middleware (Allowing all origins for production frontend)
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:5174', 'http://127.0.0.1:5173'],
+  origin: '*',
   credentials: true
 }));
 app.use(express.json());
 
 // In-Memory Data Repositories
 let workers = [
-  { id: 1, name: "Ramesh Kumar", skill: "Electrician", society: "Jaipur Labour Union", experienceYears: 8, jobsCompleted: 142, rating: 4.8, hourlyRate: 350, verified: true, suspended: false },
-  { id: 2, name: "Suresh Sharma", skill: "Plumber", society: "North Cooperative Society", experienceYears: 6, jobsCompleted: 98, rating: 4.9, hourlyRate: 300, verified: true, suspended: false },
-  { id: 3, name: "Anita Devi", skill: "Caregiving", society: "Central Welfare Society", experienceYears: 10, jobsCompleted: 215, rating: 5.0, hourlyRate: 400, verified: true, suspended: false },
-  { id: 4, name: "Vikram Singh", skill: "Carpentry", society: "Jaipur Artisan Union", experienceYears: 5, jobsCompleted: 74, rating: 4.7, hourlyRate: 380, verified: true, suspended: false },
-  { id: 5, name: "Sunita Verma", skill: "Painting", society: "Metro Labour Federation", experienceYears: 4, jobsCompleted: 53, rating: 4.6, hourlyRate: 320, verified: false, suspended: false }
+  { id: 1, name: "Ramesh Kumar", skill: "Electrician", society: "Jaipur Labour Union", experienceYears: 8, jobsCompleted: 142, rating: 4.8, hourlyRate: 350, verified: true, suspended: false, lat: 26.9124, lng: 75.7873 },
+  { id: 2, name: "Suresh Sharma", skill: "Plumber", society: "North Cooperative Society", experienceYears: 6, jobsCompleted: 98, rating: 4.9, hourlyRate: 300, verified: true, suspended: false, lat: 26.8910, lng: 75.8010 },
+  { id: 3, name: "Anita Devi", skill: "Caregiving", society: "Central Welfare Society", experienceYears: 10, jobsCompleted: 215, rating: 5.0, hourlyRate: 400, verified: true, suspended: false, lat: 26.9200, lng: 75.7700 }
 ];
 
 let bookings = [
@@ -41,6 +46,32 @@ let bookings = [
 // Health Check
 app.get('/', (req, res) => {
   res.status(200).json({ status: "healthy", service: "ShramSetu REST Engine", port: PORT });
+});
+
+// GET /api/location - Serves worker GPS coordinates for Map Component
+app.get('/api/location', (req, res) => {
+  const activeWorkerLocations = workers
+    .filter(w => !w.suspended)
+    .map(w => ({ id: w.id, name: w.name, skill: w.skill, lat: w.lat, lng: w.lng }));
+  res.status(200).json({ success: true, count: activeWorkerLocations.length, data: activeWorkerLocations });
+});
+
+// POST /api/payments/create-order - Razorpay Order Creation Endpoint
+app.post('/api/payments/create-order', async (req, res) => {
+  try {
+    const { amount } = req.body;
+    const options = {
+      amount: (amount || 500) * 100, // Amount in paise
+      currency: "INR",
+      receipt: `receipt_${Date.now()}`
+    };
+
+    const order = await razorpay.orders.create(options);
+    res.status(200).json({ success: true, order });
+  } catch (error) {
+    console.error("Razorpay Error:", error);
+    res.status(500).json({ success: false, message: "Failed to create Razorpay order", error: error.message });
+  }
 });
 
 // GET /api/workers
@@ -84,7 +115,9 @@ app.post('/api/workers', (req, res) => {
     rating: 5.0,
     hourlyRate: Number(hourlyRate),
     verified: false,
-    suspended: false
+    suspended: false,
+    lat: 26.9124 + (Math.random() - 0.5) * 0.04,
+    lng: 75.7873 + (Math.random() - 0.5) * 0.04
   };
 
   workers.push(newWorker);
@@ -165,7 +198,7 @@ app.patch('/api/bookings/:id/status', (req, res) => {
   res.status(200).json({ success: true, message: "Status updated", data: booking });
 });
 
-// Global 404 Route Catch
+// Global 404 Catch
 app.use((req, res) => {
   res.status(404).json({ success: false, message: `Endpoint ${req.originalUrl} not found on this server` });
 });
@@ -177,5 +210,5 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });

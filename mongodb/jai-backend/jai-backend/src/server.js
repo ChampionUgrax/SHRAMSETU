@@ -8,14 +8,14 @@ import authRoutes from './routes/authRoutes.js';
 import customerRoutes from './routes/customerRoutes.js';
 import workerRoutes from './routes/workerRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
-import paymentRoutes from './routes/paymentRoutes.js'; // Added payment routes import
+import paymentRoutes from './routes/paymentRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Security & Parsing Middleware
+// Security & Parsing Middleware (Allowing Render Frontend)
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:5174', 'http://127.0.0.1:5173'],
+  origin: '*',
   credentials: true
 }));
 app.use(express.json());
@@ -30,12 +30,24 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Map Location Endpoint for Frontend Map Component
+app.get('/api/location', (req, res) => {
+  res.status(200).json({
+    success: true,
+    data: [
+      { id: 1, name: "Ramesh Kumar", skill: "Electrician", lat: 26.9124, lng: 75.7873 },
+      { id: 2, name: "Suresh Sharma", skill: "Plumber", lat: 26.8910, lng: 75.8010 },
+      { id: 3, name: "Anita Devi", skill: "Caregiving", lat: 26.9200, lng: 75.7700 }
+    ]
+  });
+});
+
 // REST API Modular Routing
 app.use('/api/auth', authRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/workers', workerRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/payment', paymentRoutes); // Mounted payment endpoints under /api/payment
+app.use('/api/payment', paymentRoutes);
 
 // Catch-All 404 Route Handler
 app.use((req, res) => {
